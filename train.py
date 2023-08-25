@@ -25,12 +25,16 @@ from src.preprocess import preprocess_pipeline
 
 # 로그 들어갈 위치
 # 로그를 정해진 로그 경로에 logs.log로 저장하도록 설정
+logger = set_logger(os.path.join(LOG_FILEPATH, "logs.log"))
 
 sys.excepthook = handle_exception
+# 이렇게 하면 try except 필요 없음
+
 warnings.filterwarnings(action="ignore")
 
 
 if __name__ == "__main__":
+    logger.info("Loading data")
     train_df = pd.read_csv(os.path.join(DATA_PATH, "house_rent_train.csv"))
 
     # _x : x를 위한 중간역할. 코드에서 실재 사용 되지는 않음.
@@ -41,9 +45,11 @@ if __name__ == "__main__":
 
     # X=_X, y=y로 전처리 파이프라인을 적용해 X에 저장
     # 요게 feature data가 됨
+    logger.info("Applying a pipeline")
     X = preprocess_pipeline.fit_transform(X=_X, y=y)
 
     # Data storage - 피처 데이터 저장
+    logger.info("Saving a feature data")
     if not os.path.exists(os.path.join(DATA_PATH, "storage")):
         os.makedirs(os.path.join(DATA_PATH, "storage"))
     X.assign(rent=y).to_csv(
@@ -96,6 +102,7 @@ if __name__ == "__main__":
                     "RMSE_CV": score_cv.mean()  # RMSE_CV 라는 이름으로 score_cv.mean()을 저장
                 }
             )
+            logger.info(f"RMSE CV for Run {i}: {score_cv.mean()}")
 
             # 로깅 정보 : 학습 loss
             for s in regr.train_score_:
@@ -128,6 +135,7 @@ if __name__ == "__main__":
 
     best_run = mlflow.get_run(best_run_df.at[0, "run_id"])
     best_params = best_run.data.params
+    logger.info(f"Best hyper-parameter: {best_params}")
 
     best_model_uri = f"{best_run.info.artifact_uri}/model"
 
