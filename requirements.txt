@@ -1,0 +1,4 @@
+bentoml>=1.0.0
+scikit-learn
+pandas=2.0.0
+numpy
